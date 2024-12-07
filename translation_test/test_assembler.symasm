@@ -1,0 +1,12 @@
+palindrome_start:
+    rcx < 0 : palindrome_end
+    -
+    rbx = rdx
+    rbx -= rcx
+    rbx -= 1
+    bl = byte [rdi + rbx]
+    byte [rdi + rcx] != bl : palindrome_failed
+    -
+    rcx--
+    :palindrome_start
+palindrome_end:

@@ -1,0 +1,12 @@
+palindrome_start:
+    cmp rcx, 0
+    jl palindrome_end
+    mov rbx, rdx
+    sub rbx, rcx
+    sub rbx, 1
+    mov bl, byte [rdi + rbx]
+    cmp byte [rdi + rcx], bl
+    jne palindrome_failed
+    dec rcx
+    jmp palindrome_start
+palindrome_end:
