@@ -1,6 +1,6 @@
 const vscode = require('vscode');
 const path = require('path');
-const {exec} = require('child_process');
+const {execFile} = require('child_process');
 const fs = require('fs');
 
 function activate(context) {
@@ -28,10 +28,10 @@ function activate(context) {
     fs.writeFileSync(inputFile, text);
 
     const symasmPath =
-        path.join(__dirname, '..', 'symasm',
+        path.join(context.extensionPath,
             'symasm_original_project', 'symasm.py');
 
-    exec(`python3 ${symasmPath} ${inputFile}`, (err, stdout, stderr) => {
+    execFile('python3', [symasmPath, inputFile], (err, stdout, stderr) => {
       if (err) {
         vscode.window.showErrorMessage(`Error: ${stderr}`);
         return;

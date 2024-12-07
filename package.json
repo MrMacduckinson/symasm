@@ -1,8 +1,9 @@
 {
   "name": "symasm",
   "displayName": "Symasm",
-  "description": "",
+  "description": "Translates x86 assembler to symcode",
   "version": "0.0.1",
+  "publisher": "MrMacduckinson",
   "engines": {
     "vscode": "^1.95.0"
   },
