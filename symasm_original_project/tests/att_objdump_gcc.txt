@@ -1,0 +1,87 @@
+helper_scripts/make_test_objdump_gcc.py
+Errors:
+
+        callq  40387b <calloc@plt+0x7fb>
+        jne    4043c4 <calloc@plt+0x1344>
+        movq   0x20,%rax
+        movq   $0x0,0x30
+        movdqa 0x315232(%rip),%xmm0        # 71a480 <stderr@@GLIBC_2.2.5+0x3300>
+        sarq   %rsi
+        setne  -0x168(%rbp)
+        movsb  %ds:(%rsi),%es:(%rdi)
+        movq   %fs:0x28,%rax
+        callq  *%rax
+        shll   0x48(%rsp)
+        pmovmskb %xmm0,%esi
+        prefetchnta (%r15)
+        prefetcht0 (%rax)
+        bswap  %eax
+
+        call   40387b <calloc@plt+0x7fb>
+        jne    4043c4 <calloc@plt+0x1344>
+        mov    rax,QWORD PTR ds:0x20
+        mov    QWORD PTR ds:0x30,0x0
+        movdqa xmm0,XMMWORD PTR [rip+0x315232]        # 71a480 <stderr@@GLIBC_2.2.5+0x3300>
+        sar    rsi,1
+        setne  BYTE PTR [rbp-0x168]
+        movs   BYTE PTR es:[rdi],BYTE PTR ds:[rsi]
+        mov    rax,QWORD PTR fs:0x28
+        call   rax
+        shl    DWORD PTR [rsp+0x48],1
+        pmovmskb esi,xmm0
+        prefetchnta BYTE PTR [r15]
+        prefetcht0 BYTE PTR [rax]
+        bswap  eax
+
+        40387b <calloc@plt+0x7fb>(...)
+        != : 4043c4 <calloc@plt+0x1344>
+        rax = 8bytes[20h]
+        8bytes[30h] = 0
+        xmm0l |=a| 16bytes[rip+315232h]
+        rsi >>= 1
+        byte[rbp-168h] = 1 if != else 0
+        byte[es:rdi] = byte[ds:rsi]
+        rax = 8bytes[fs:28h]
+        rax(...)
+        4bytes[rsp+48h] <<= 1
+        esi |=| mask(xmm0b)
+        prefetchnta byte[r15]
+        prefetcht0 byte[rax]
+        bswap eax
+
+------------------------------------------
+
+att & masm:
+
+        pushq  $0x0
+        cmovaq %rdx,%rax
+        movabsq $0x2000204000,%rdx
+        btq    %rcx,%rax
+        btrq   $0x23,%rax
+        btsq   $0x3f,%rax
+        btcq   $0x3f,%rax
+        cmovnew 0x10(%rax),%bx
+        lock cmpxchgq %rbx,(%rdx)
+        lock subl $0x1,-0x60(%rsi)
+
+        push   0x0
+        cmova  rax,rdx
+        movabs rdx,0x2000204000
+        bt     rax,rcx
+        btr    rax,0x23
+        bts    rax,0x3f
+        btc    rax,0x3f
+        cmovne bx,WORD PTR [rax+0x10]
+        lock cmpxchg QWORD PTR [rdx],rbx
+        lock sub DWORD PTR [rsi-0x60],0x1
+
+        push 0
+        rax = rdx if u>
+        rdx = 2000204000h
+        cf = rax.bit(rcx)
+        cf = rax.bit(23h), rax.bit(23h) = 0
+        cf = rax.bit(3fh), rax.bit(3fh) = 1
+        cf = rax.bit(3fh), rax.bit(3fh).flip()
+        bx = 2bytes[rax+10h] if !=
+        lock cmpxchg 8bytes[rdx], rbx
+        lock 4bytes[rsi-60h] -= 1

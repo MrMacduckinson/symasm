@@ -1,0 +1,150 @@
+addss xmm0, xmm1         ; xmm0s += xmm1
+subss xmm0, xmm1         ; xmm0s -= xmm1
+addsd xmm0, xmm1         ; xmm0d += xmm1
+subsd xmm0, xmm1         ; xmm0d -= xmm1
+
+mulps xmm1, xmm2         ; xmm1s |*=| xmm2
+divpd xmm3, xmm4         ; xmm3d |/=| xmm4
+
+addps xmm0, xmm1         ; xmm0s |+=| xmm1
+xorps xmm0, xmm0         ; xmm0s |=| 0
+xorps xmm0, xmm1         ; xmm0s |(+)=| xmm1
+
+paddb xmm1, xmm2         ; xmm1b |+=| xmm2
+paddw xmm1, xmm2         ; xmm1w |+=| xmm2
+paddd xmm1, xmm2         ; xmm1i |+=| xmm2
+paddq xmm1, xmm2         ; xmm1l |+=| xmm2
+
+psubb xmm3, xmm4         ; xmm3b |-=| xmm4
+PMULLW xmm1, xmm2        ; xmm1w |*=| xmm2
+
+pxor xmm1, xmm2          ; xmm1 |(+)=| xmm2
+por  xmm1, xmm2          ; xmm1 ||=| xmm2
+pand xmm1, xmm2          ; xmm1 |&=| xmm2
+pandn xmm1, xmm2         ; xmm1 |=| ~xmm1 & xmm2
+
+paddsb xmm1, xmm2        ; xmm1b |s+=| xmm2
+paddsw xmm1, xmm2        ; xmm1w |s+=| xmm2
+psubsb xmm1, xmm2        ; xmm1b |s-=| xmm2
+psubusb xmm1, xmm2       ; xmm1b |us-=| xmm2
+paddusb xmm1, xmm2       ; xmm1b |us+=| xmm2
+paddusw xmm1, xmm2       ; xmm1w |us+=| xmm2
+
+movhlps xmm0, xmm1       ; xmm0s[0:2] |=| xmm1s[2:4]
+movlhps xmm0, xmm1       ; xmm0s[2:4] |=| xmm1s[0:2]
+unpckhpd xmm0, xmm1      ; xmm0d |=| xmm0d[1], xmm1d[1]
+unpcklpd xmm0, xmm1      ; xmm0d[1] = xmm1d[0]
+
+shufps xmm0, xmm1, 1110b ; xmm0s |=| xmm0s[2,3], xmm1s[0,0]
+shufps xmm0, xmm0, 1110b ; xmm0s |=| xmm0s[2,3,0,0]
+shufpd xmm0, xmm1, 01b   ; xmm0d |=| xmm0d[1], xmm1d[0]
+shufpd xmm0, xmm0, 01b   ; xmm0d |=| xmm0d[1,0]
+
+movaps xmm0, [f]         ; xmm0s |=a| [f]
+movups xmm0, [f]         ; xmm0s |=u| [f]
+movapd xmm0, [f]         ; xmm0d |=a| [f]
+movupd xmm0, [f]         ; xmm0d |=u| [f]
+movdqa xmm0, [i]         ; xmm0l |=a| [i]
+movdqu xmm0, [i]         ; xmm0l |=u| [i]
+movaps [f], xmm0         ; [f] |=a| xmm0s
+movaps xmm1, xmm0        ; xmm1s |=a| xmm0
+
+movss xmm0, [f]          ; xmm0s = [f]
+movsd xmm0, [f]          ; xmm0d = [f]
+movq rax, xmm0           ; rax = xmm0l
+movd eax, xmm0           ; eax = xmm0i
+movq xmm0, rax           ; xmm0l = rax
+movd xmm0, eax           ; xmm0i = eax
+
+movlps xmm0, m64         ; xmm0s[0:2] |=| m64
+movhps xmm0, m64         ; xmm0s[2:4] |=| m64
+movlpd xmm0, m64         ; xmm0d[0] = m64
+movhpd xmm0, m64         ; xmm0d[1] = m64
+
+------------------------------------------
+
+comiss  xmm0, xmm1  ; xmm0s <=> xmm1s
+comiss  xmm0, [rsp] ; xmm0s <=> [rsp]
+ucomiss xmm0, xmm1  ; xmm0s uo<=> xmm1s
+ucomisd xmm0, xmm1  ; xmm0d uo<=> xmm1d
+
+comiss xmm0, xmm1   ; xmm0s u> xmm1s : .L4
+ja     .L4          ; -
+
+ucomiss xmm0, xmm1  ; xmm0s uo> xmm1s : .L4
+ja      .L4         ; -
+
+ucomisd xmm0, [rsp] ; xmm0d uo> [rsp] : .L4
+ja      .L4         ; -
+
+------------------------------------------
+
+pcmpeqw xmm0, xmm2    ; xmm0w |=| == xmm2w
+pcmpgtw xmm0, xmm2    ; xmm0w |=| > xmm2w
+cmpeqsd xmm0, xmm1    ; xmm0d = == xmm1d
+cmpltsd xmm0, xmm1    ; xmm0d = < xmm1d
+cmpltps xmm0, xmm1    ; xmm0s |=| < xmm1s
+CMPUNORDSS xmm1, xmm2 ; xmm1s .= cmpunord(xmm2s)
+CMPORDPS xmm1, xmm2   ; xmm1s |.=| cmpord(xmm2s)
+
+------------------------------------------
+
+sqrtss xmm0, xmm1    ; xmm0s = sqrt(xmm1)
+sqrtps xmm0, xmm1    ; xmm0s |=| sqrt(xmm1)
+PMAXSB xmm1, xmm2    ; xmm1b |.=| maxs(xmm2)
+minss xmm1, xmm2     ; xmm1s .= min(xmm2)
+minps xmm1, xmm2     ; xmm1s |.=| min(xmm2)
+PUNPCKLBW xmm1, xmm2 ; xmm1b |.=| unpacklo(xmm2)
+PHADDW xmm1, xmm2    ; xmm1w |.=| hadd(xmm2)
+
+------------------------------------------
+
+cvtsi2ss xmm2, ecx  ; xmm2s = float(ecx)
+cvtss2si ecx, xmm2  ; ecx = int(round(xmm2s))
+cvttss2si ecx, xmm2 ; ecx = int(xmm2s)
+cvttss2si r8d, xmm2 ; r8i = int(xmm2s)
+cvtss2sd xmm0, xmm1 ; xmm0d = convert(xmm1s)
+cvtdq2ps xmm1, xmm2 ; xmm1s |=| float(xmm2i)
+cvtps2dq xmm1, xmm2 ; xmm1i |=| int(round(xmm2s))
+cvtdq2pd xmm1, xmm2 ; xmm1d |=| float(xmm2i[0:2])
+cvtps2pd xmm6, xmm0 ; xmm6d |=| convert(xmm0s[0:2])
+CVTPD2DQ xmm1, xmm2 ; xmm1i[0:2] |=| int(round(xmm2d)), xmm1i[2:4] |=| 0
+CVTPD2PS xmm1, xmm2 ; xmm1s[0:2] |=| convert(xmm2d), xmm1s[2:4] |=| 0
+
+------------------------------------------
+
+PINSRB xmm1, eax, 1            ; xmm1b[1] = al
+PINSRB xmm1, esi, 1            ; xmm1b[1] = sil
+PINSRW xmm1, eax, 2            ; xmm1w[2] = ax
+PINSRD xmm1, eax, 1            ; xmm1i[1] = eax
+PINSRQ xmm1, rax, 1            ; xmm1l[1] = rax
+PINSRB xmm1, r8d, 1            ; xmm1b[1] = r8b
+PINSRW xmm1, r8d, 1            ; xmm1w[1] = r8w
+PINSRB xmm1, BYTE PTR [rax], 1 ; xmm1b[1] = byte[rax]
+PEXTRB eax, xmm1, 1            ; eax = xmm1b[1]
+PEXTRW eax, xmm1, 2            ; eax = xmm1w[2]
+PEXTRD eax, xmm1, 1            ; eax = xmm1i[1]
+PEXTRQ rax, xmm1, 1            ; rax = xmm1l[1]
+PEXTRB r8d, xmm1, 1            ; r8i = xmm1b[1]
+PEXTRW r8d, xmm1, 1            ; r8i = xmm1w[1]
+PEXTRB BYTE PTR [rax], xmm1, 1 ; byte[rax] = xmm1b[1]
+
+------------------------------------------
+
+andpd  xmm0,XMMWORD PTR [rip+0x18ddba] ; xmm0d |&=| 16bytes[rip+18ddbah]
+andnpd xmm6,xmm4                       ; xmm6d |=| ~xmm6 & xmm4
+orpd   xmm0,xmm6                       ; xmm0d ||=| xmm6
+
+------------------------------------------
+
+; python311.dll (32 bit)
+movlpd  qword ptr [ebp-14H], xmm0 ; 8bytes[ebp-14H] = xmm0d[0]
+
+------------------------------------------
+
+; Python 3.6.9 on Ubuntu 18.04
+; `xmm0b |.=| packus(xmm15w)`?
+packuswb xmm0,xmm15 ; xmm0b |=| packus(xmm0w, xmm15w)
+psrldq xmm8,0x8     ; xmm8 |.=| bshr(8)
+pmuludq xmm12,xmm4  ; xmm12ul |.=| mului(xmm4)
+movmskpd eax,xmm0   ; eax |=| mask(xmm0d)

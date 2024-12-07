@@ -1,0 +1,23 @@
+// Input language (masm, att, symasm)
+// Default value: auto
+input_language = auto
+
+// Operating mode (annotate, translate)
+// Default value: auto
+mode = auto
+
+// Indent (tab, space, 4 spaces, 2 tabs, etc.)
+// Default value: keep
+indent = keep
+
+// Case (upper, lower)
+// Default value: keep
+case = keep
+
+// Insert `v` for AVX instructions only if mixing was detected (yes, no)
+// Default value: yes
+detect_mixing_avx_and_sse = yes
+
+// Show errors for detected SSE instructions (yes, no)
+// Default value: no
+prohibit_sse_instructions = no

@@ -1,0 +1,342 @@
+// >[https://stackoverflow.com/questions/61781889/objdump-do-not-show-machine-code-but-show-asm <- google:‘objdump strip machine code’]:‘Use `cut` command’
+// >[https://stackoverflow.com/questions/68630162/make-objdump-use-an-operand-size-suffix-like-l-on-every-mnemonic-even-when-its <- google:‘objdump suffix’]:‘-M suffix’
+// gcc-9 -c -O2 test.c && (objdump -d --no-show-raw-insn test.o -M suffix | cut -d ':' -f 2-) && (objdump -d --no-show-raw-insn test.o -M intel | cut -d ':' -f 2-)
+int compare(int a, int b)
+{
+    return a < b ? -1 : a > b ? 1 : 0;
+}
+
+        xorl   %eax,%eax
+        cmpl   %esi,%edi
+        movl   $0xffffffff,%edx
+        setg   %al
+        cmovll %edx,%eax
+        retq
+
+        xor    eax,eax
+        cmp    edi,esi
+        mov    edx,0xffffffff
+        setg   al
+        cmovl  eax,edx
+        ret
+
+        eax = 0
+        edi <=> esi
+        edx = 0ffffffffh
+        al = 1 if > else 0
+        eax = edx if <
+        ret
+
+------------------------------------------
+
+int intfunc(int a, int b) { return a + b*4 + 3; }
+
+        leal   0x3(%rdi,%rsi,4),%eax
+        retq
+
+        lea    eax,[rdi+rsi*4+0x3]
+        ret
+
+        eax = &[rdi+rsi*4+3]
+        ret
+
+------------------------------------------
+
+int intfunc(int a, int b) { return a + b*4 - 3; }
+
+        leal   -0x3(%rdi,%rsi,4),%eax
+        retq
+
+        lea    eax,[rdi+rsi*4-0x3]
+        ret
+
+        eax = &[rdi+rsi*4-3]
+        ret
+
+------------------------------------------
+
+int a, b;
+void intfunc() { b = a + 3; }
+
+        movl   0x0(%rip),%eax        # 6 <intfunc+0x6>
+        addl   $0x3,%eax
+        movl   %eax,0x0(%rip)        # f <intfunc+0xf>
+        retq
+
+        mov    eax,DWORD PTR [rip+0x0]        # 6 <intfunc+0x6>
+        add    eax,0x3
+        mov    DWORD PTR [rip+0x0],eax        # f <intfunc+0xf>
+        ret
+
+        eax = 4bytes[rip+0]
+        eax += 3
+        4bytes[rip+0] = eax
+        ret
+
+------------------------------------------
+
+int a, b;
+void intfunc() { b = a * -123; }
+
+        imull  $0xffffff85,0x0(%rip),%eax        # 7 <intfunc+0x7>
+        movl   %eax,0x0(%rip)        # d <intfunc+0xd>
+        retq
+
+        imul   eax,DWORD PTR [rip+0x0],0xffffff85        # 7 <intfunc+0x7>
+        mov    DWORD PTR [rip+0x0],eax        # d <intfunc+0xd>
+        ret
+
+        eax = 4bytes[rip+0] * 0ffffff85h
+        4bytes[rip+0] = eax
+        ret
+
+------------------------------------------
+
+int int_ptr(int *p) {return *p;}
+
+        movl   (%rdi),%eax
+        retq
+
+        mov    eax,DWORD PTR [rdi]
+        ret
+
+        eax = 4bytes[rdi]
+        ret
+
+------------------------------------------
+
+#include <stddef.h>
+int arr[100];
+int arri(size_t i) {return arr[i];}
+
+        leaq   0x0(%rip),%rax        # 7 <_Z4arrim+0x7>
+        movl   (%rax,%rdi,4),%eax
+        retq
+
+        lea    rax,[rip+0x0]        # 7 <_Z4arrim+0x7>
+        mov    eax,DWORD PTR [rax+rdi*4]
+        ret
+
+        rax = &[rip+0]
+        eax = 4bytes[rax+rdi*4]
+        ret
+
+------------------------------------------
+
+#include <stddef.h>
+int arr[100];
+int arri(size_t i) {return arr[i+1];}
+
+        leaq   0x0(%rip),%rax        # 7 <_Z4arrim+0x7>
+        movl   0x4(%rax,%rdi,4),%eax
+        retq
+
+        lea    rax,[rip+0x0]        # 7 <_Z4arrim+0x7>
+        mov    eax,DWORD PTR [rax+rdi*4+0x4]
+        ret
+
+        rax = &[rip+0]
+        eax = 4bytes[rax+rdi*4+4]
+        ret
+
+------------------------------------------
+
+int arri(char *arr) {return arr[-1];}
+
+        movsbl -0x1(%rdi),%eax
+        retq
+
+        movsx  eax,BYTE PTR [rdi-0x1]
+        ret
+
+        eax = sx(byte[rdi-1])
+        ret
+
+------------------------------------------
+
+int arri(short *arr) {return arr[-1];}
+
+        movswl -0x2(%rdi),%eax
+        retq
+
+        movsx  eax,WORD PTR [rdi-0x2]
+        ret
+
+        eax = sx(2bytes[rdi-2])
+        ret
+
+------------------------------------------
+
+#include <stddef.h>
+int arri(int *a, size_t i) {return a[i];}
+
+        movl   (%rdi,%rsi,4),%eax
+        retq
+
+        mov    eax,DWORD PTR [rdi+rsi*4]
+        ret
+
+        eax = 4bytes[rdi+rsi*4]
+        ret
+
+------------------------------------------
+
+#include <stddef.h>
+char arri(char *a, size_t i) {return a[i];}
+
+        movzbl (%rdi,%rsi,1),%eax
+        retq
+
+        movzx  eax,BYTE PTR [rdi+rsi*1]
+        ret
+
+        eax = zx(byte[rdi+rsi*1])
+        ret
+
+------------------------------------------
+
+#include <stddef.h>
+int arri(char *a, size_t i) {return a[i];}
+
+        movsbl (%rdi,%rsi,1),%eax
+        retq
+
+        movsx  eax,BYTE PTR [rdi+rsi*1]
+        ret
+
+        eax = sx(byte[rdi+rsi*1])
+        ret
+
+------------------------------------------
+
+int c_to_i(char c) {return c;}
+
+        movsbl %dil,%eax
+        retq
+
+        movsx  eax,dil
+        ret
+
+        eax = sx(dil)
+        ret
+
+------------------------------------------
+
+void set_byte(char *p) {*p = 0;}
+
+        movb   $0x0,(%rdi)
+        retq
+
+        mov    BYTE PTR [rdi],0x0
+        ret
+
+        byte[rdi] = 0
+        ret
+
+------------------------------------------
+
+void set_2bytes(short *p) {*p = 0;}
+
+        xorl   %eax,%eax
+        movw   %ax,(%rdi)
+        retq
+
+        xor    eax,eax
+        mov    WORD PTR [rdi],ax
+        ret
+
+        eax = 0
+        2bytes[rdi] = ax
+        ret
+
+------------------------------------------
+
+void set_4bytes(int *p) {*p = 0;}
+
+        movl   $0x0,(%rdi)
+        retq
+
+        mov    DWORD PTR [rdi],0x0
+        ret
+
+        4bytes[rdi] = 0
+        ret
+
+------------------------------------------
+
+void set_8bytes(long *p) {*p = 0;}
+
+        movq   $0x0,(%rdi)
+        retq
+
+        mov    QWORD PTR [rdi],0x0
+        ret
+
+        8bytes[rdi] = 0
+        ret
+
+------------------------------------------
+
+float x[8], y[8];
+void sum()
+{
+    for (int i=0; i < 8; ++i)
+        x[i] += y[i];
+}
+// gcc-9 -c -O2 -ftree-vectorize test.c && (objdump -d --no-show-raw-insn test.o -M suffix | cut -d ':' -f 2-) && (objdump -d --no-show-raw-insn test.o -M intel | cut -d ':' -f 2-)
+
+        movaps 0x0(%rip),%xmm0        # 7 <sum+0x7>
+        addps  0x0(%rip),%xmm0        # e <sum+0xe>
+        movaps %xmm0,0x0(%rip)        # 15 <sum+0x15>
+        movaps 0x0(%rip),%xmm0        # 1c <sum+0x1c>
+        addps  0x0(%rip),%xmm0        # 23 <sum+0x23>
+        movaps %xmm0,0x0(%rip)        # 2a <sum+0x2a>
+        retq
+
+        movaps xmm0,XMMWORD PTR [rip+0x0]        # 7 <sum+0x7>
+        addps  xmm0,XMMWORD PTR [rip+0x0]        # e <sum+0xe>
+        movaps XMMWORD PTR [rip+0x0],xmm0        # 15 <sum+0x15>
+        movaps xmm0,XMMWORD PTR [rip+0x0]        # 1c <sum+0x1c>
+        addps  xmm0,XMMWORD PTR [rip+0x0]        # 23 <sum+0x23>
+        movaps XMMWORD PTR [rip+0x0],xmm0        # 2a <sum+0x2a>
+        ret
+
+        xmm0s |=a| 16bytes[rip+0]
+        xmm0s |+=| 16bytes[rip+0]
+        16bytes[rip+0] |=a| xmm0s
+        xmm0s |=a| 16bytes[rip+0]
+        xmm0s |+=| 16bytes[rip+0]
+        16bytes[rip+0] |=a| xmm0s
+        ret
+
+------------------------------------------
+
+// gcc-9 -c -O3 -march=haswell test.c && (objdump -d --no-show-raw-insn test.o -M suffix | cut -d ':' -f 2-) && (objdump -d --no-show-raw-insn test.o -M intel | cut -d ':' -f 2-)
+
+        vmovups 0x0(%rip),%ymm1        # 8 <sum+0x8>
+        vaddps 0x0(%rip),%ymm1,%ymm0        # 10 <sum+0x10>
+        vmovups %ymm0,0x0(%rip)        # 18 <sum+0x18>
+        vzeroupper
+        retq
+
+        vmovups ymm1,YMMWORD PTR [rip+0x0]        # 8 <sum+0x8>
+        vaddps ymm0,ymm1,YMMWORD PTR [rip+0x0]        # 10 <sum+0x10>
+        vmovups YMMWORD PTR [rip+0x0],ymm0        # 18 <sum+0x18>
+        vzeroupper
+        ret
+
+        ymm1s v|=u| 32bytes[rip+0]
+        ymm0s v|=| ymm1 + 32bytes[rip+0]
+        32bytes[rip+0] v|=u| ymm0s
+        vzeroupper
+        ret
+
+------------------------------------------
+
+// objdump -d --no-show-raw-insn /usr/lib/x86_64-linux-gnu/libgmp.so.10.3.2 -M suffix | cut -d ':' -f 2- > libgmp.s
+
+        shrdq  %cl,%rdx,%rax
+
+        shrd   rax,rdx,cl
+
+        _:rax = rdx:rax >> cl

@@ -1,0 +1,138 @@
+compare(int, int):
+        xor     eax, eax ; eax = 0
+        cmp     edi, esi ; edi <=> esi
+        mov     edx, -1  ; edx = -1
+        setg    al       ; al = 1 if > else 0
+        cmovl   eax, edx ; eax = edx if <
+        ret
+
+------------------------------------------
+
+divide(int, int):
+        mov     eax, edi ; eax = edi
+        cdq              ; edx:eax = sx(eax)
+        idiv    esi      ; edx:eax /= esi
+        ret
+
+------------------------------------------
+
+divide(long, long):
+        mov     rax, rdi ; rax = rdi
+        cqo              ; rdx:rax = sx(rax)
+        idiv    rsi      ; rdx:rax /= rsi
+        ret
+
+------------------------------------------
+
+palindrome_start:
+    cmp rcx, 0               ; rcx < 0 : palindrome_end
+    jl palindrome_end        ; -
+    mov rbx, rdx             ; rbx = rdx
+    sub rbx, rcx             ; rbx -= rcx
+    sub rbx, 1               ; rbx -= 1
+    mov bl, byte [rdi + rbx] ; bl = byte [rdi + rbx]
+    cmp byte [rdi + rcx], bl ; byte [rdi + rcx] != bl : palindrome_failed
+    jne palindrome_failed    ; -
+    dec rcx                  ; rcx--
+    jmp palindrome_start     ; :palindrome_start
+palindrome_end:
+
+------------------------------------------
+
+    test    ecx, ecx ; ecx == 0 : .zero
+    jz     .zero     ; -
+
+    test eax, eax    ; eax != 0 : label
+    jnz label        ; -
+    test eax, ebx    ; eax <&> ebx
+
+------------------------------------------
+
+    cmp    ecx, 0 ; ecx == (0) : .zero
+    je     .zero  ; -
+
+    cmp    ecx, 0 ; ecx == (0) : .zero
+    jz     .zero  ; -
+
+------------------------------------------
+
+        dec     rdi ; --rdi != 0 : .L3
+        jne     .L3 ; -
+
+------------------------------------------
+
+add eax, ebx      ; eax += ebx
+sub eax, ebx      ; eax -= ebx
+imul ebx          ; edx:eax *= ebx
+mul ebx           ; edx:eax u*= ebx
+imul ecx, edx     ; ecx *= edx
+imul ecx, edx, 10 ; ecx = edx * 10
+idiv ebx          ; edx:eax /= ebx
+div ebx           ; edx:eax u/= ebx
+neg eax           ; eax = -eax
+inc eax           ; eax++
+dec eax           ; eax--
+and eax, ebx      ; eax &= ebx
+or eax, ebx       ; eax |= ebx
+xor eax, ebx      ; eax (+)= ebx
+xor eax, eax      ; eax = 0
+not eax           ; eax = ~eax
+sal eax, cl       ; eax <<= cl
+shl eax, cl       ; eax <<= cl
+sar eax, cl       ; eax >>= cl
+shr eax, cl       ; eax u>>= cl
+rol eax, cl       ; eax (<<)= cl
+ror eax, cl       ; eax (>>)= cl
+rcl eax, cl       ; cf:eax (<<)= cl
+rcr eax, cl       ; cf:eax (>>)= cl
+adc eax, ebx      ; eax += ebx + cf
+sbb eax, ebx      ; eax -= ebx + cf
+
+------------------------------------------
+
+lea edx, [eax + ebx*2] ; edx = &[eax + ebx*2]
+xchg eax, ecx          ; eax >< ecx
+
+------------------------------------------
+
+movsx  rax, BYTE PTR [byte_num]  ; rax = sx(byte[byte_num])
+movsx  rax, WORD PTR [short_num] ; rax = sx(2bytes[short_num])
+movsxd rax, DWORD PTR [int_num]  ; rax = sx(4bytes[int_num])
+mov    eax, DWORD PTR [int_num]  ; eax = 4bytes[int_num]
+movzx  rax, WORD PTR [short_num] ; rax = zx(2bytes[short_num])
+
+------------------------------------------
+
+; Intel\MKL\10.2.6.037\ia32\bin\mkl_core.dll
+fabs    LABEL NEAR
+
+------------------------------------------
+
+; python-3.11.3-embed-win32.zip\python311.dll
+shld    edx, eax, 16 ; edx:_ = edx:eax << 16
+shl     eax, 16      ; eax <<= 16
+shrd    edx, eax, 8  ; _:edx = eax:edx >> 8
+shr     eax, 8       ; eax u>>= 8
+
+------------------------------------------
+
+; /usr/lib/x86_64-linux-gnu/libgmp.so.10.3.2
+clc ; cf = 0
+
+------------------------------------------
+
+; objdump -d --no-show-raw-insn /usr/bin/python3.6 -M intel | cut -d ':' -f 2- > python3i.s
+
+test   eax,eax                          ; eax <= 0 : 421bd3 <PyODict_New@@Base+0x83e>
+jle    421bd3 <PyODict_New@@Base+0x83e> ; -
+
+------------------------------------------
+
+mov eax, 123456h       ; eax = 123456h
+mov eax, 123456h       ; eax = 123456h
+mov rax, 123456h       ; rax = (123456h)
+mov rax, 123456789012h ; rax = 123456789012h
+mov rax, 0             ; rax = (0)
+mov rax, -1            ; rax = -1
+mov rax, 4294967295    ; rax = (4294967295)
+mov rax, 4294967296    ; rax = 4294967296

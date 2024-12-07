@@ -1,0 +1,165 @@
+vmulpd  ymm7, ymm5, ymm6 ; ymm7d v|=| ymm5 * ymm6
+vrcpps  ymm0, ymm1       ; ymm0s v|=| 1 / ymm1
+vpsllw  xmm1, xmm2, xmm3 ; xmm1w v|=| xmm2 << xmm3
+vpaddsb xmm1, xmm2, xmm3 ; xmm1b v|=| xmm2 s+ xmm3
+vpandn  xmm1, xmm2, xmm3 ; xmm1 v|=| ~xmm2 & xmm3
+
+vpor    xmm1, xmm2, xmm3 ; xmm1 v|=| xmm2 | xmm3
+vrcpss  ymm0, ymm1, ymm2 ; ymm0s v|=| 1 / ymm2s[0], ymm1s[1:4]
+vrcpss  ymm0, ymm0, ymm2 ; ymm0s v= 1 / ymm2s
+vxorps xmm0, xmm0, xmm0  ; xmm0s v|=| 0
+vxorpd xmm0, xmm0, xmm0  ; xmm0d v|=| 0
+vxorps xmm0, xmm1, xmm2  ; xmm0s v|=| xmm1 (+) xmm2
+
+------------------------------------------
+
+vfmadd132ps xmm2, xmm3, xmm4 ; xmm2s v|=| xmm2 * xmm4 + xmm3
+VFMADD213PS xmm1, xmm2, xmm3 ; xmm1s v|=| xmm2 * xmm1 + xmm3
+VFMADD231PS xmm1, xmm2, xmm3 ; xmm1s v|=| xmm2 * xmm3 + xmm1
+
+------------------------------------------
+
+vshufps xmm0, xmm1, xmm1, 1110b ; xmm0s v|=| xmm1s[2,3,0,0]
+vshufps xmm0, xmm1, xmm2, 1110b ; xmm0s v|=| xmm1s[2,3], xmm2s[0,0]
+vshufps ymm0, ymm1, ymm2, 1110b ; ymm0s v|=| ymm1s[2,3], ymm2s[0,0], ymm1s[6,7], ymm2s[4,4]
+vshufps ymm0, ymm1, ymm1, 1110b ; ymm0s v|=| ymm1s[2,3,0,0,6,7,4,4]
+vshufpd xmm0, xmm1, xmm1, 01b   ; xmm0d v|=| xmm1d[1,0]
+vshufpd xmm0, xmm1, xmm2, 01b   ; xmm0d v|=| xmm1d[1], xmm2d[0]
+vshufpd ymm0, ymm1, ymm2, 0001b ; ymm0d v|=| ymm1d[1], ymm2d[0], ymm1d[2], ymm2d[2]
+vshufpd ymm0, ymm1, ymm1, 0001b ; ymm0d v|=| ymm1d[1,0,2,2]
+
+------------------------------------------
+
+vaddss  xmm0, xmm1, xmm2 ; xmm0s v= xmm1 + xmm2
+
+vmovaps ymm0, [f]        ; ymm0s v|=a| [f]
+vmovups ymm0, [f]        ; ymm0s v|=u| [f]
+vmovapd ymm0, [f]        ; ymm0d v|=a| [f]
+
+vmovntpd [f], ymm0       ; [f] v|=nt| ymm0d
+vmovntps [f], ymm0       ; [f] v|=nt| ymm0s
+
+vmovlps xmm0, xmm1, m64  ; xmm0s v|=| m64, xmm1s[2:4]
+vmovlps xmm0, xmm0, m64  ; xmm0s[0:2] v|=| m64
+vmovhps xmm0, xmm1, m64  ; xmm0s v|=| xmm1s[0:2], m64
+vmovhps xmm0, xmm0, m64  ; xmm0s[2:4] v|=| m64
+
+------------------------------------------
+
+vmovq rax, xmm0 ; rax v= xmm0l
+vmovd eax, xmm0 ; eax v= xmm0i
+vmovq xmm0, rax ; xmm0l v= rax
+vmovd xmm0, eax ; xmm0i v= eax
+
+------------------------------------------
+
+vcomiss  xmm0, xmm1  ; xmm0s v<=> xmm1s
+vcomiss  xmm0, [rsp] ; xmm0s v<=> [rsp]
+vucomiss xmm0, xmm1  ; xmm0s vuo<=> xmm1s
+vucomisd xmm0, xmm1  ; xmm0d vuo<=> xmm1d
+
+vcomiss xmm0, xmm1   ; xmm0s vu> xmm1s : .L4
+ja      .L4          ; -
+
+vucomiss xmm0, xmm1  ; xmm0s vuo> xmm1s : .L4
+ja       .L4         ; -
+
+vucomisd xmm0, [rsp] ; xmm0d vuo> [rsp] : .L4
+ja       .L4         ; -
+
+------------------------------------------
+
+vpcmpeqw xmm0, xmm1, xmm2    ; xmm0w v|=| xmm1w == xmm2w
+vpcmpgtw xmm0, xmm1, xmm2    ; xmm0w v|=| xmm1w > xmm2w
+vcmpltpd xmm0, xmm1, xmm2    ; xmm0d v|=| xmm1d < xmm2d
+vcmpltsd xmm0, xmm1, xmm2    ; xmm0d v= xmm1d < xmm2d
+vcmpltps xmm0, xmm1, xmm2    ; xmm0s v|=| xmm1s < xmm2s
+VCMPUNORDSS xmm1, xmm2, xmm3 ; xmm1s v= cmpunord(xmm2, xmm3)
+VCMPORDPS xmm1, xmm2, xmm3   ; xmm1s v|=| cmpord(xmm2, xmm3)
+VCMPEQ_UQPD xmm1, xmm2, xmm3 ; xmm1d v|=| xmm2d uo== xmm3d
+VCMPFALSEPD xmm1, xmm2, xmm3 ; xmm1d v|=| cmpfalse(xmm2, xmm3)
+
+------------------------------------------
+
+vextractf128 xmm5, ymm0, 1 ; xmm5d v|=| ymm0d[2:4]
+
+------------------------------------------
+
+vsqrtss xmm0, xmm0, xmm1    ; xmm0s v= sqrt(xmm1)
+vsqrtss xmm0, xmm1, xmm2    ; xmm0s v= sqrt(xmm2s[0]), xmm1s[1:4]
+vsqrtps xmm0, xmm1          ; xmm0s v|=| sqrt(xmm1)
+vsqrtpd xmm0, xmm1          ; xmm0d v|=| sqrt(xmm1)
+vsqrtsd xmm0, xmm1, xmm2    ; xmm0d v= sqrt(xmm2d[0]), xmm1d[1]
+VPMAXSW xmm1, xmm2, xmm3    ; xmm1w v|=| maxs(xmm2, xmm3)
+vminps xmm1, xmm2, xmm3     ; xmm1s v|=| min(xmm2, xmm3)
+vminss xmm1, xmm2, xmm3     ; xmm1s v= min(xmm2, xmm3)
+VPUNPCKLBW ymm1, ymm2, ymm0 ; ymm1b v|=| unpacklo(ymm2, ymm0)
+VPHADDW ymm1,ymm2,ymm3      ; ymm1w v|=| hadd(ymm2, ymm3)
+
+------------------------------------------
+
+vcvtsi2sd xmm3, xmm3, r8d  ; xmm3d v= float(r8i)
+vcvtsi2sd xmm3, xmm4, r8d  ; xmm3d v= float(r8i), xmm4d[1]
+vcvtsi2ss xmm3, xmm4, r8d  ; xmm3s v= float(r8i), xmm4s[1:4]
+vcvtsi2ss xmm3, xmm3, r8d  ; xmm3s v= float(r8i)
+vcvtdq2pd ymm1, xmm2       ; ymm1d v|=| float(xmm2i)
+vcvtdq2pd xmm1, xmm2       ; xmm1d v|=| float(xmm2i[0:2])
+vcvtps2pd ymm6, xmm0       ; ymm6d v|=| convert(xmm0s)
+vcvtps2pd xmm6, xmm0       ; xmm6d v|=| convert(xmm0s[0:2])
+VCVTSS2SD xmm1, xmm2, xmm3 ; xmm1d v= convert(xmm3s[0]), xmm2d[1]
+VCVTSS2SD xmm1, xmm1, xmm3 ; xmm1d v= convert(xmm3s)
+VCVTSD2SS xmm1, xmm2, xmm3 ; xmm1s v= convert(xmm3d[0]), xmm2s[1:4]
+VCVTSD2SS xmm1, xmm1, xmm3 ; xmm1s v= convert(xmm3d)
+VCVTSS2SI r8, xmm1         ; r8 v= int(round(xmm1s))
+VCVTSD2SI r8, xmm1         ; r8 v= int(round(xmm1d))
+VCVTPD2DQ xmm1, xmm2       ; xmm1i[0:2] v|=| int(round(xmm2d)), xmm1i[2:4] |=| 0
+VCVTPD2DQ xmm1, ymm2       ; xmm1i v|=| int(round(ymm2d))
+VCVTPD2PS xmm1, xmm2       ; xmm1s[0:2] v|=| convert(xmm2d), xmm1s[2:4] |=| 0
+VCVTPD2PS xmm1, ymm2       ; xmm1s v|=| convert(ymm2d)
+
+------------------------------------------
+
+VPINSRB xmm1, xmm1, eax, 1            ; xmm1b[1] v= al
+VPINSRB xmm1, xmm1, esi, 1            ; xmm1b[1] v= sil
+VPINSRW xmm1, xmm1, eax, 2            ; xmm1w[2] v= ax
+VPINSRD xmm1, xmm1, eax, 1            ; xmm1i[1] v= eax
+VPINSRQ xmm1, xmm1, rax, 1            ; xmm1l[1] v= rax
+VPINSRB xmm1, xmm1, r8d, 1            ; xmm1b[1] v= r8b
+VPINSRW xmm1, xmm1, r8d, 1            ; xmm1w[1] v= r8w
+VPINSRB xmm1, xmm1, BYTE PTR [rax], 1 ; xmm1b[1] v= byte[rax]
+VPEXTRB eax, xmm1, 1                  ; eax v= xmm1b[1]
+VPEXTRW eax, xmm1, 2                  ; eax v= xmm1w[2]
+VPEXTRD eax, xmm1, 1                  ; eax v= xmm1i[1]
+VPEXTRQ rax, xmm1, 1                  ; rax v= xmm1l[1]
+VPEXTRB r8d, xmm1, 1                  ; r8i v= xmm1b[1]
+VPEXTRW r8d, xmm1, 1                  ; r8i v= xmm1w[1]
+VPEXTRB BYTE PTR [rax], xmm1, 1       ; byte[rax] v= xmm1b[1]
+
+------------------------------------------
+
+vandpd  xmm1,xmm0,XMMWORD PTR [rip+0x18ddba] ; xmm1d v|=| xmm0 & 16bytes[rip+18ddbah]
+vandnpd xmm1,xmm6,xmm4                       ; xmm1d v|=| ~xmm6 & xmm4
+vorpd   xmm1,xmm0,xmm6                       ; xmm1d v|=| xmm0 | xmm6
+
+------------------------------------------
+
+; After seeing `ymm0i v|=| zx(xmm4b)` I thought: why not `ymm0i v|=| zx(xmm4b[0:8])`?
+
+VPMOVZXBW xmm1, xmm2 ; xmm1w v|=| zx(xmm2b[0:8])
+VPMOVZXBW ymm1, xmm2 ; ymm1w v|=| zx(xmm2b)
+VPMOVZXBW zmm1, ymm2 ; zmm1w v|=| zx(ymm2b)
+VPMOVZXBD xmm1, xmm2 ; xmm1i v|=| zx(xmm2b[0:4])
+VPMOVZXBD ymm1, xmm2 ; ymm1i v|=| zx(xmm2b[0:8])
+VPMOVZXBD zmm1, xmm2 ; zmm1i v|=| zx(xmm2b)
+VPMOVZXBQ xmm1, xmm2 ; xmm1l v|=| zx(xmm2b[0:2])
+VPMOVZXBQ ymm1, xmm2 ; ymm1l v|=| zx(xmm2b[0:4])
+VPMOVZXBQ zmm1, xmm2 ; zmm1l v|=| zx(xmm2b[0:8])
+VPMOVZXWD xmm1, xmm2 ; xmm1i v|=| zx(xmm2w[0:4])
+VPMOVZXWD ymm1, xmm2 ; ymm1i v|=| zx(xmm2w)
+VPMOVZXWD zmm1, ymm2 ; zmm1i v|=| zx(ymm2w)
+VPMOVZXWQ xmm1, xmm2 ; xmm1l v|=| zx(xmm2w[0:2])
+VPMOVZXWQ ymm1, xmm2 ; ymm1l v|=| zx(xmm2w[0:4])
+VPMOVZXWQ zmm1, xmm2 ; zmm1l v|=| zx(xmm2w)
+VPMOVZXDQ xmm1, xmm2 ; xmm1l v|=| zx(xmm2i[0:2])
+VPMOVZXDQ ymm1, xmm2 ; ymm1l v|=| zx(xmm2i)
+VPMOVZXDQ zmm1, ymm2 ; zmm1l v|=| zx(ymm2i)
